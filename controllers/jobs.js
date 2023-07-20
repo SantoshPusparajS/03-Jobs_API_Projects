@@ -1,25 +1,66 @@
-const getAllJobs = (req, res) => {
-  res.json(req.user);
+import Job from "../models/jobModel.js";
+
+const getAllJobs = async (req, res) => {
+  const jobs = await find({ createdBy: req.user.userId }).sort("createdAt");
+  res.status(StatusCodes.OK).json({ jobs, count: jobs.length });
+};
+const getJob = async (req, res) => {
+  const {
+    user: { userId },
+    params: { id: jobId },
+  } = req;
+
+  const job = await findOne({
+    _id: jobId,
+    createdBy: userId,
+  });
+  if (!job) {
+    throw new NotFoundError(`No job with id ${jobId}`);
+  }
+  res.status(StatusCodes.OK).json({ job });
 };
 
-const getJob = (req, res) => {
-  res.json(req.user);
+const createJob = async (req, res) => {
+  req.body.createdBy = req.user.userId;
+  const job = await create(req.body);
+  res.status(StatusCodes.CREATED).json({ job });
 };
 
-const createJobs = (req, res) => {
-  res.json(req.user);
+const updateJob = async (req, res) => {
+  const {
+    body: { company, position },
+    user: { userId },
+    params: { id: jobId },
+  } = req;
+
+  if (company === "" || position === "") {
+    throw new BadRequestError("Company or Position fields cannot be empty");
+  }
+  const job = await findByIdAndUpdate(
+    { _id: jobId, createdBy: userId },
+    req.body,
+    { new: true, runValidators: true }
+  );
+  if (!job) {
+    throw new NotFoundError(`No job with id ${jobId}`);
+  }
+  res.status(StatusCodes.OK).json({ job });
 };
 
-const updateJobs = (req, res) => {
-  res.send("Inside updateJobs Controller");
+const deleteJob = async (req, res) => {
+  const {
+    user: { userId },
+    params: { id: jobId },
+  } = req;
+
+  const job = await findByIdAndRemove({
+    _id: jobId,
+    createdBy: userId,
+  });
+  if (!job) {
+    throw new NotFoundError(`No job with id ${jobId}`);
+  }
+  res.status(StatusCodes.OK).send();
 };
 
-const deleteAllJobs = (req, res) => {
-  res.send("Inside deleteAllJobs Controller");
-};
-
-const deleteJob = (req, res) => {
-  res.send("Inside deleteJob Controller");
-};
-
-export { getAllJobs, getJob, createJobs, updateJobs, deleteAllJobs, deleteJob };
+export { createJob, deleteJob, getAllJobs, updateJob, getJob };

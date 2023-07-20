@@ -1,16 +1,15 @@
 import express from "express";
 import {
-  createJobs,
-  deleteAllJobs,
+  createJob,
   deleteJob,
   getAllJobs,
+  updateJob,
   getJob,
-  updateJobs,
 } from "../controllers/jobs.js";
 
 const router = express.Router();
 
-router.route("/").get(getAllJobs).post(createJobs).delete(deleteAllJobs);
-router.route("/:id").get(getJob).patch(updateJobs).delete(deleteJob);
+router.route("/").get(getAllJobs).post(createJob);
+router.route("/:id").get(getJob).patch(updateJob).delete(deleteJob);
 
 export default router;
